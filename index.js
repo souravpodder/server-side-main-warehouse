@@ -4,6 +4,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const jwt = require('jsonwebtoken');
 
 app.use(cors());
 app.use(express.json());
@@ -19,7 +20,7 @@ async function run() {
     const itemsCollection = client.db("sportsGearDB").collection("items");
     console.log('connected to sports gear db');
 
-    // get all the datas
+    // get the datas
     app.get('/items', async (req, res) => {
       const query = req.query;
       // console.log(query);
@@ -42,7 +43,7 @@ async function run() {
     app.put(`/updatequantity/:id`, async (req, res) => {
       const id = req.params.id;
       const updatedQuantity = req.body;
-      console.log(updatedQuantity);
+      // console.log(updatedQuantity);
       const filter = { _id: ObjectId(id) };
       const options = { upsert: true };
 
@@ -65,6 +66,24 @@ async function run() {
       const query = { _id: ObjectId(id) };
       const result = await itemsCollection.deleteOne(query);
       res.send(result);
+    })
+
+    // add a item 
+    app.post('/item', async (req, res) => {
+      const newItem = req.body;
+      // console.log(newItem);
+      const result = await itemsCollection.insertOne(newItem);
+      res.send(result);
+    })
+
+    // jwt token api 
+
+    app.post('/getToken', async (req, res) => {
+      const email = req.body;
+      console.log(email);
+      const token = jwt.sign(email, process.env.ACCESS_TOKEN_SECRET);
+      console.log(token);
+      res.send({ token });
     })
 
 
