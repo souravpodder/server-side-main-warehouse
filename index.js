@@ -22,12 +22,37 @@ async function run() {
 
     // get the datas
     app.get('/items', async (req, res) => {
-      const query = req.query;
+      const query = {};
       // console.log(query);
-
       const cursor = itemsCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
+    })
+
+    // get my items 
+    app.get('/myitems', async (req, res) => {
+      //  get tokeninfo from headers 
+      const tokenInfo = req.headers.authorization;
+      // console.log(tokenInfo);
+      if (!tokenInfo) {
+        res.send({ message: 'unauthorized access' })
+      }
+
+      else {
+        const [email, accessToken] = tokenInfo.split(' ');
+        const decoded = verifyToken(accessToken);
+
+        if (email === decoded.email) {
+          const query = req.query;
+          // console.log(query);
+          const cursor = itemsCollection.find(query);
+          const result = await cursor.toArray();
+          res.send(result);
+        } else {
+          res.send({ message: 'Unauthorized Access!' });
+        }
+
+      }
     })
 
     // get a single item 
@@ -80,9 +105,9 @@ async function run() {
 
     app.post('/getToken', async (req, res) => {
       const email = req.body;
-      console.log(email);
+      // console.log(email);
       const token = jwt.sign(email, process.env.ACCESS_TOKEN_SECRET);
-      console.log(token);
+      // console.log(token);
       res.send({ token });
     })
 
@@ -102,3 +127,20 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   console.log('listening to port', port);
 })
+
+const verifyToken = (token) => {
+  let decodedEmail;
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+
+    if (err) {
+      decodedEmail = 'invalid email';
+    }
+
+    if (decoded) {
+      // console.log('decoded', decoded);
+      decodedEmail = decoded;
+    }
+  });
+
+  return decodedEmail;
+}
