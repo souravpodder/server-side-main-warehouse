@@ -33,7 +33,7 @@ async function run() {
     app.get('/myitems', async (req, res) => {
       //  get tokeninfo from headers 
       const tokenInfo = req.headers.authorization;
-      // console.log(tokenInfo);
+
       if (!tokenInfo) {
         res.send({ message: 'unauthorized access' })
       }
@@ -87,7 +87,6 @@ async function run() {
     // delete a single item 
     app.delete('/item/:id', async (req, res) => {
       const id = req.params.id;
-      console.log(id);
       const query = { _id: ObjectId(id) };
       const result = await itemsCollection.deleteOne(query);
       res.send(result);
@@ -105,9 +104,8 @@ async function run() {
 
     app.post('/getToken', async (req, res) => {
       const email = req.body;
-      // console.log(email);
       const token = jwt.sign(email, process.env.ACCESS_TOKEN_SECRET);
-      // console.log(token);
+
       res.send({ token });
     })
 
